@@ -1,0 +1,241 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 80px 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #1e1b4b, #4c1d95, #be185d, #1e1b4b);
+  background-size: 400% 400%;
+  animation: gradientShift 18s ease infinite;
+  overflow-x: hidden;
+}
+
+/* Soft glowing blobs in the background */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.55;
+  z-index: -1;
+  animation: float 14s ease-in-out infinite;
+}
+body::before { background: #6366f1; top: -120px; left: -120px; }
+body::after  { background: #ec4899; bottom: -140px; right: -120px; animation-delay: -7s; }
+
+.app {
+  width: 100%;
+  max-width: 500px;
+  padding: 36px 32px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  animation: cardIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 28px;
+  background: linear-gradient(90deg, #a5b4fc, #f9a8d4, #fde68a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.task-form {
+  display: flex;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+
+.task-form:focus-within {
+  border-color: rgba(165, 180, 252, 0.8);
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.25);
+}
+
+#task-input {
+  flex: 1;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #fff;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+#task-input::placeholder { color: rgba(255, 255, 255, 0.55); }
+
+#add-btn {
+  padding: 12px 24px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+#add-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 12px 28px rgba(236, 72, 153, 0.55);
+}
+
+#add-btn:active { transform: translateY(0) scale(0.97); }
+
+.task-list { list-style: none; margin-top: 24px; }
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(60px, 40px) scale(1.1); }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- Task items ---------- */
+.task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  animation: taskIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.task:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateX(4px);
+}
+
+.task-text { flex: 1; word-break: break-word; }
+
+.delete-btn {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 0.6;
+  transition: opacity 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.task:hover .delete-btn { opacity: 1; }
+
+.delete-btn:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #f43f5e, #ec4899);
+  transform: rotate(90deg);
+}
+
+.task.removing { animation: taskOut 0.3s ease forwards; }
+
+.empty {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.95rem;
+}
+
+@keyframes taskIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes taskOut {
+  to { opacity: 0; transform: translateX(40px); }
+}
+
+/* ---------- Done checkbox ---------- */
+.done-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.done-checkbox:hover { border-color: #f9a8d4; transform: scale(1.1); }
+
+.done-checkbox::after {
+  content: "";
+  width: 6px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) scale(0);
+  margin-top: -2px;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1.4);
+}
+
+.done-checkbox:checked {
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  border-color: transparent;
+}
+
+.done-checkbox:checked::after { transform: rotate(45deg) scale(1); }
+
+/* Strikethrough that draws across the text */
+.task-text {
+  background-image: linear-gradient(#f9a8d4, #f9a8d4);
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 0% 2px;
+  transition: background-size 0.35s ease, color 0.3s, opacity 0.3s;
+}
+
+.task.done .task-text {
+  text-decoration: line-through;
+  text-decoration-color: transparent;
+  background-size: 100% 2px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.task.done { background: rgba(255, 255, 255, 0.05); }

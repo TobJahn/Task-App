@@ -1,0 +1,30 @@
+# OS files
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment / secrets
+.env
+.env.*
+
+# Dependencies and build output (in case tooling is added later)
+node_modules/
+dist/
+build/
+.cache/
+
+# Machine-specific Claude Code config
+.claude/launch.json
+.claude/settings.local.json
