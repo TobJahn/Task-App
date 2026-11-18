@@ -10,12 +10,25 @@ const clearBtn = document.getElementById("clear-completed");
 // Load saved tasks (or start with an empty list)
 let tasks = loadTasks();
 
+// Unique ID per task. Date.now() alone collides when two tasks are added in the same millisecond.
+function newId() {
+  return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function loadTasks() {
+  let saved;
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
   } catch {
     return [];
   }
+  // Repair duplicate IDs left over from the old Date.now() scheme
+  const seen = new Set();
+  for (const task of saved) {
+    if (seen.has(task.id)) task.id = newId();
+    seen.add(task.id);
+  }
+  return saved;
 }
 
 function saveTasks() {
@@ -69,7 +82,7 @@ function renderTasks() {
 }
 
 function addTask(text) {
-  tasks.push({ id: Date.now(), text, done: false });
+  tasks.push({ id: newId(), text, done: false });
   saveTasks();
   renderTasks();
 }
