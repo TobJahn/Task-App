@@ -24,10 +24,15 @@ function loadTasks() {
   }
   // Repair duplicate IDs left over from the old Date.now() scheme
   const seen = new Set();
+  let repaired = false;
   for (const task of saved) {
-    if (seen.has(task.id)) task.id = newId();
+    if (seen.has(task.id)) {
+      task.id = newId();
+      repaired = true;
+    }
     seen.add(task.id);
   }
+  if (repaired) localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
   return saved;
 }
 
@@ -102,34 +107,41 @@ function clearCompleted() {
   if (doneIds.size === 0) return;
 
   if (document.activeElement === clearBtn) input.focus(); // the button is about to hide
-  clearBtn.hidden = true;
 
-  const rows = [...list.querySelectorAll(".task.done")];
-  rows.forEach((li) => li.classList.add("removing"));
-
-  let finished = false;
-  const finish = () => {
-    if (finished) return;
-    finished = true;
-    tasks = tasks.filter((t) => !doneIds.has(t.id));
-    saveTasks();
-    renderTasks();
-  };
-  rows[0]?.addEventListener("animationend", finish, { once: true });
-  setTimeout(finish, 500); // fallback in case the animation doesn't run (e.g. background tab)
+  const rows = [...list.querySelectorAll(".task.done:not(.removing)")];
+  removeTasks(doneIds, rows);
 }
 
 clearBtn.addEventListener("click", clearCompleted);
 
+// Remove tasks from the data right away, then let their rows slide out.
+// Because the data is already updated, a re-render during the animation can't bring
+// a row back, and the leaving rows are disabled so they can't be ticked/unticked.
+function removeTasks(ids, rows) {
+  tasks = tasks.filter((t) => !ids.has(t.id));
+  saveTasks();
+  updateClearButton();
+
+  if (rows.some((li) => li.contains(document.activeElement))) input.focus(); // keyboard users keep their place
+
+  rows.forEach((li) => {
+    li.classList.add("removing");
+    li.querySelectorAll("input, button").forEach((el) => (el.disabled = true));
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      li.remove();
+      if (tasks.length === 0 && !list.querySelector(".task")) renderTasks(); // show the empty placeholder
+    };
+    li.addEventListener("animationend", finish, { once: true });
+    setTimeout(finish, 500); // fallback in case the animation doesn't run (e.g. background tab)
+  });
+}
+
 function deleteTask(id, li) {
-  const hadFocus = li.contains(document.activeElement);
-  li.classList.add("removing");
-  li.addEventListener("animationend", () => {
-    tasks = tasks.filter((t) => t.id !== id);
-    saveTasks();
-    renderTasks();
-    if (hadFocus) input.focus(); // keyboard users don't lose their place when the row disappears
-  }, { once: true });
+  removeTasks(new Set([id]), [li]);
 }
 
 form.addEventListener("submit", (e) => {

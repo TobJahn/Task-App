@@ -172,7 +172,7 @@ h1 {
   transform: rotate(90deg);
 }
 
-.task.removing { animation: taskOut 0.3s ease forwards; }
+.task.removing { animation: taskOut 0.3s ease forwards; pointer-events: none; }
 
 .empty {
   text-align: center;
