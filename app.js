@@ -5,24 +5,49 @@ const STORAGE_KEY = "tasks";
 const form = document.getElementById("task-form");
 const input = document.getElementById("task-input");
 const list = document.getElementById("task-list");
+const clearBtn = document.getElementById("clear-completed");
 
 // Load saved tasks (or start with an empty list)
 let tasks = loadTasks();
 
+// Unique ID per task. Date.now() alone collides when two tasks are added in the same millisecond.
+function newId() {
+  return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function loadTasks() {
+  let saved;
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
   } catch {
     return [];
   }
+  // Repair duplicate IDs left over from the old Date.now() scheme
+  const seen = new Set();
+  let repaired = false;
+  for (const task of saved) {
+    if (seen.has(task.id)) {
+      task.id = newId();
+      repaired = true;
+    }
+    seen.add(task.id);
+  }
+  if (repaired) localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  return saved;
 }
 
 function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
+// The "Clear completed" button is only shown while at least one task is done
+function updateClearButton() {
+  clearBtn.hidden = !tasks.some((t) => t.done);
+}
+
 function renderTasks() {
   list.innerHTML = "";
+  updateClearButton();
 
   if (tasks.length === 0) {
     const empty = document.createElement("li");
@@ -62,7 +87,7 @@ function renderTasks() {
 }
 
 function addTask(text) {
-  tasks.push({ id: Date.now(), text, done: false });
+  tasks.push({ id: newId(), text, done: false });
   saveTasks();
   renderTasks();
 }
@@ -73,17 +98,50 @@ function toggleDone(id, done, li) {
   task.done = done;
   saveTasks();
   li.classList.toggle("done", done); // update in place so the strikethrough animates
+  updateClearButton();
+}
+
+// Remove every done task at once; all done rows slide out together first
+function clearCompleted() {
+  const doneIds = new Set(tasks.filter((t) => t.done).map((t) => t.id));
+  if (doneIds.size === 0) return;
+
+  if (document.activeElement === clearBtn) input.focus(); // the button is about to hide
+
+  const rows = [...list.querySelectorAll(".task.done:not(.removing)")];
+  removeTasks(doneIds, rows);
+}
+
+clearBtn.addEventListener("click", clearCompleted);
+
+// Remove tasks from the data right away, then let their rows slide out.
+// Because the data is already updated, a re-render during the animation can't bring
+// a row back, and the leaving rows are disabled so they can't be ticked/unticked.
+function removeTasks(ids, rows) {
+  tasks = tasks.filter((t) => !ids.has(t.id));
+  saveTasks();
+  updateClearButton();
+
+  if (rows.some((li) => li.contains(document.activeElement))) input.focus(); // keyboard users keep their place
+
+  rows.forEach((li) => {
+    li.classList.add("removing");
+    li.querySelectorAll("input, button").forEach((el) => (el.disabled = true));
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      li.remove();
+      if (tasks.length === 0 && !list.querySelector(".task")) renderTasks(); // show the empty placeholder
+    };
+    li.addEventListener("animationend", finish, { once: true });
+    setTimeout(finish, 500); // fallback in case the animation doesn't run (e.g. background tab)
+  });
 }
 
 function deleteTask(id, li) {
-  const hadFocus = li.contains(document.activeElement);
-  li.classList.add("removing");
-  li.addEventListener("animationend", () => {
-    tasks = tasks.filter((t) => t.id !== id);
-    saveTasks();
-    renderTasks();
-    if (hadFocus) input.focus(); // keyboard users don't lose their place when the row disappears
-  }, { once: true });
+  removeTasks(new Set([id]), [li]);
 }
 
 form.addEventListener("submit", (e) => {
