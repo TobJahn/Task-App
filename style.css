@@ -259,6 +259,7 @@ h1 {
 
 /* Visible focus ring for keyboard users */
 #add-btn:focus-visible,
+.clear-btn:focus-visible,
 .done-checkbox:focus-visible,
 .delete-btn:focus-visible {
   outline: 3px solid #fde68a;
@@ -266,3 +267,35 @@ h1 {
 }
 
 .delete-btn:focus-visible { opacity: 1; }
+
+/* ---------- Clear completed ---------- */
+.list-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.clear-btn {
+  margin-top: 6px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  cursor: pointer;
+  animation: taskIn 0.3s ease both;
+  transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.clear-btn[hidden] { display: none; }
+
+.clear-btn:hover {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #f43f5e, #ec4899);
+  transform: translateY(-1px);
+}
+
+.clear-btn:active { transform: scale(0.97); }

@@ -5,6 +5,7 @@ const STORAGE_KEY = "tasks";
 const form = document.getElementById("task-form");
 const input = document.getElementById("task-input");
 const list = document.getElementById("task-list");
+const clearBtn = document.getElementById("clear-completed");
 
 // Load saved tasks (or start with an empty list)
 let tasks = loadTasks();
@@ -21,8 +22,14 @@ function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
+// The "Clear completed" button is only shown while at least one task is done
+function updateClearButton() {
+  clearBtn.hidden = !tasks.some((t) => t.done);
+}
+
 function renderTasks() {
   list.innerHTML = "";
+  updateClearButton();
 
   if (tasks.length === 0) {
     const empty = document.createElement("li");
@@ -73,7 +80,33 @@ function toggleDone(id, done, li) {
   task.done = done;
   saveTasks();
   li.classList.toggle("done", done); // update in place so the strikethrough animates
+  updateClearButton();
 }
+
+// Remove every done task at once; all done rows slide out together first
+function clearCompleted() {
+  const doneIds = new Set(tasks.filter((t) => t.done).map((t) => t.id));
+  if (doneIds.size === 0) return;
+
+  if (document.activeElement === clearBtn) input.focus(); // the button is about to hide
+  clearBtn.hidden = true;
+
+  const rows = [...list.querySelectorAll(".task.done")];
+  rows.forEach((li) => li.classList.add("removing"));
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    tasks = tasks.filter((t) => !doneIds.has(t.id));
+    saveTasks();
+    renderTasks();
+  };
+  rows[0]?.addEventListener("animationend", finish, { once: true });
+  setTimeout(finish, 500); // fallback in case the animation doesn't run (e.g. background tab)
+}
+
+clearBtn.addEventListener("click", clearCompleted);
 
 function deleteTask(id, li) {
   const hadFocus = li.contains(document.activeElement);
