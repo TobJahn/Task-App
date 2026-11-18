@@ -41,6 +41,7 @@ function renderTasks() {
     checkbox.className = "done-checkbox";
     checkbox.checked = !!task.done;
     checkbox.title = "Mark as done";
+    checkbox.setAttribute("aria-label", `Mark "${task.text}" as done`);
     checkbox.addEventListener("change", () => toggleDone(task.id, checkbox.checked, li));
 
     const text = document.createElement("span");
@@ -48,7 +49,9 @@ function renderTasks() {
     text.textContent = task.text;
 
     const del = document.createElement("button");
+    del.type = "button";
     del.className = "delete-btn";
+    del.setAttribute("aria-label", `Delete "${task.text}"`);
     del.textContent = "✕";
     del.title = "Delete task";
     del.addEventListener("click", () => deleteTask(task.id, li));
@@ -73,11 +76,13 @@ function toggleDone(id, done, li) {
 }
 
 function deleteTask(id, li) {
+  const hadFocus = li.contains(document.activeElement);
   li.classList.add("removing");
   li.addEventListener("animationend", () => {
     tasks = tasks.filter((t) => t.id !== id);
     saveTasks();
     renderTasks();
+    if (hadFocus) input.focus(); // keyboard users don't lose their place when the row disappears
   }, { once: true });
 }
 
